@@ -1,0 +1,16 @@
+version: "3"
+
+services:
+  qb-extract:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      -  /c/Users/Tim/iCloudDrive/qb_data:/app/data
+    # cron:
+    #   image: python:3.10-slim
+    #   command: tail -f /var/log/cron.log
+    # depends_on:
+      # - cron
+    # volumes:
+    #   - /var/log/cron.log:/var/log/cron.log
