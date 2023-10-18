@@ -15,9 +15,9 @@ def main():
     ## Application parameters
     lookback_days = 30
     # datapath = "C:/Users/Tim/iCloudDrive/qb_data"
-    main_path = "./"
+    # main_path = "./"
 
-    load_dotenv()
+    load_dotenv(override=True)
 
     ## QB connection
     qb_cxn_parameters = {
@@ -38,7 +38,7 @@ def main():
         'db_name': os.getenv('PG_DB_NAME')
     }
     
-    pg_engine = etl.connect_to_db(qb_cxn_parameters)
+    pg_engine = etl.connect_to_db(pg_cxn_parameters)
 
     ## Create all the tables in tables.py
     metadata_obj.create_all(qb_engine)
@@ -48,17 +48,14 @@ def main():
     stmt = select(tbl_bills).filter(column("DueDate") >= datefilter)
     df = etl.quickbooks_to_dataframe(stmt, qb_engine)
 
-    ## Placde a copy on local disk
-    landing_path = Path(main_path) / "data" / "raw_bills.pkl"
-    etl.data_to_source(df, landing_path)
+    ## Place a copy on local disk
+    ## Removed. Will place directly into database table
+    # landing_path = Path(main_path) / "raw_bills.pkl"
 
     ## Insert the datframe into PG
     table_name = 'lfg_bills'
     table_schema = 'landing'
-    etl.data_to_landing(df, pg_engine, table_name, table_schema)
-
-
-
+    print(etl.data_to_landing(df, pg_engine, table_name, table_schema))
 
 if __name__ == "__main__":
     main()
