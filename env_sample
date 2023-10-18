@@ -1,0 +1,14 @@
+## This app uses environment variables for secrets
+
+## Quickbooks connection
+DB_USER=""
+DB_PASSWORD=""
+DB_HOST=""
+DB_PORT=""
+
+## Postgres connection
+PG_DB_USER=""
+PG_DB_PASSWORD=""
+PG_DB_HOST=""
+PG_DB_PORT=""
+PG_DB_NAME=""
