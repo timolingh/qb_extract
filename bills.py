@@ -53,9 +53,19 @@ def main():
     # landing_path = Path(main_path) / "raw_bills.pkl"
 
     ## Insert the datframe into PG
-    table_name = 'lfg_bills'
-    table_schema = 'landing'
+    table_name = "lfg_bills"
+    table_schema = "landing"
     print(etl.data_to_landing(df, pg_engine, table_name, table_schema))
+
+    ## Copy to staging - no changes to the landing data
+    staging_schema = "landing"
+    print(etl.data_to_landing(df, pg_engine, table_name, staging_schema))
+
+    ## Insert to prod
+    ## No modification made so will just copy through
+    ## staging to prod fn will handle dups
+    prod_schema = "prod"
+    print(etl.staging_to_prod(pg_engine, df, prod_schema, table_name))
 
 if __name__ == "__main__":
     main()
