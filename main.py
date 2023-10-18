@@ -15,7 +15,7 @@ def main():
     ## Application parameters
     lookback_days = 30
     # datapath = "C:/Users/Tim/iCloudDrive/qb_data"
-    datapath = "./"
+    main_path = "./"
 
     load_dotenv()
     cxn_parameters = {
@@ -33,9 +33,9 @@ def main():
 
     ## Bills Raw Data
     datefilter = datetime.date.today() + datetime.timedelta(days=-lookback_days)
-    stmt = select(tbl_bills).filter(column("DueDate") >= datefilter.strftime("%Y-%m-%d"))
+    stmt = select(tbl_bills).filter(column("DueDate") >= datefilter)
     df = etl.quickbooks_to_dataframe(stmt, engine)
-    landing_path = Path(datapath)  / "raw_bills.pkl"
+    landing_path = Path(main_path) / "data" / "raw_bills.pkl"
     etl.data_to_staging(df, landing_path)
 
 

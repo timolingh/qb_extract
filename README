@@ -1,0 +1,10 @@
+
+Download the connector from the CData website
+docker-compose.yml is configured for windows style path 
+Must activate the license through the container's shell
+
+```
+cd /usr/local/lib/python3.10/site-packages/cdata/installlic_quickbooks
+./install-license.sh
+```
+Follow the prompts
