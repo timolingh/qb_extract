@@ -5,7 +5,7 @@ FROM python:3.10-slim
 COPY script.sh /app/
 COPY etl_utils.py /app/
 COPY tables.py /app/
-COPY main.py /app/
+COPY bills.py /app/
 # COPY source_to_landing.py /app/
 # COPY landing_to_staging.py /app/
 # COPY staging_to_prod.py /app/
