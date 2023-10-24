@@ -3,7 +3,8 @@
 # from datetime import datetime
 # import hashlib
 import pandas as pd
-from sqlalchemy import create_engine
+from sqlalchemy import create_engine, text
+from sqlalchemy import select, delete, join, and_
 
 def connect_to_db(cxn_parameters, echo=False):
     if 'db_name' in cxn_parameters.keys():
@@ -23,56 +24,51 @@ def connect_to_db(cxn_parameters, echo=False):
 
     return engine
 
-def quickbooks_to_dataframe(stmt, engine):
-    df = pd.read_sql_query(stmt, engine)
-    return df
+def qb_data_to_landing(engine, table, values):
+    with engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT") as conn:
+        ## Truncate the table before insert
+        fq_name = table.fullname
+        conn.execute(text(f"truncate table {fq_name}"))
+        conn.execute(table.insert(), values)
 
-def data_to_source(df, fpath):
-    nrows = df.shape[0]
-    if nrows > 0:
-        df.to_pickle(fpath)
-        return 0
-    else:
-        return 1
+    return 0
+
+def qb_data_to_staging(engine, table, values):
+    with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
+        ## Truncate the table before insert
+        fq_name = table.fullname
+        conn.execute(text(f"truncate table {fq_name}"))
+        conn.execute(table.insert(), values)
+
+    return 0
+
+def run_statement(engine, stmt):
+    with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
+        conn.execute(stmt)
     
-def data_to_landing(df, engine, table_name, schema_name):
-    nrows = df.shape[0]
-    if nrows > 0:
-        try:
-            df.to_sql(table_name, engine, schema_name, index=False, if_exists='replace')
-            return 0
-        except Exception as e:
-            return str(e)
-    else:
-        return 0
+    return 0
 
-def get_existing_qb_keys(engine, schema, table):
-    try:
-        existing_hashes = pd.read_sql_table(
-            table, engine, schema=schema, columns=['ID']
-            ).drop_duplicates()
-    except ValueError:
-        existing_hashes = pd.DataFrame({'ID': []})
 
-    return existing_hashes
+def delete_stale_prod(engine, source_table, prod_table):
+    j = join(prod_table, source_table, 
+                and_(prod_table.c.ID == source_table.c.ID, prod_table.c.DateModified < source_table.c.DateModified)
+                )
+    stale_id_stmt = select(prod_table.c.ID).select_from(j)
+    del_stmt = prod_table.delete().where(prod_table.c.ID.in_(stale_id_stmt))
+    run_statement(engine, del_stmt)
+    return 0
 
-def staging_to_prod(engine, source_df, target_schema, target_table):
+def delete_dup_staging(engine, source_table, prod_table):
+    j = join(source_table.c.ID == prod_table.c.ID)
+    in_prod_stmt = select(prod_table.c.ID).select_from(j)
+    del_stmt = source_table.delete().where(source_table.c.ID.in_(in_prod_stmt))
+    run_statement(engine, del_stmt)
+    return 0
 
-    prod_df = source_df.copy()
-
-    ## Existing hashes in the target prod table
-    existing_hashes = get_existing_qb_keys(engine, target_schema, target_table)
-    new_prod_df = prod_df.loc[~prod_df['ID'].isin(existing_hashes['ID']), :]
-    nrows_before = prod_df.shape[0]
-    nrows_after = new_prod_df.shape[0]
-    print(f'Before rows: {nrows_before}; After rows: {nrows_after}')
-
-    ## Write to db
-    try:
-        new_prod_df.to_sql(target_table, engine, target_schema, index=False, if_exists='append')
-        return 0
-    except Exception as e:
-        return str(e)
+def staging_to_prod(engine, source_table, prod_table):
+    stmt = prod_table.insert().values(source_table.select())
+    run_statement(engine, stmt) 
+    return 0   
 
 ## Debugging section
 def main():

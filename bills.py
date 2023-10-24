@@ -40,32 +40,32 @@ def main():
     
     pg_engine = etl.connect_to_db(pg_cxn_parameters)
 
-    ## Create all the tables in tables.py
-    metadata_obj.create_all(qb_engine)
+    ## Create tables in tables.py
+    # metadata_obj.create_all(qb_engine)
+    tbl_bills.create(qb_engine, checkfirst=True)
+    tbl_lfg_bills.create(pg_engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
+    tbl_lfg_bills.create(pg_engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
+    tbl_prod_lfg_bills.create(pg_engine.connect().execution_options(isolation_level="AUTOCOMMIT"), checkfirst=True)
 
     ## Extract
     datefilter = datetime.date.today() + datetime.timedelta(days=-lookback_days)
     stmt = select(tbl_bills).filter(column("DueDate") >= datefilter)
-    df = etl.quickbooks_to_dataframe(stmt, qb_engine)
+    with qb_engine.connect() as conn:
+        sourcedata = conn.execute(stmt).fetchall()
 
-    ## Place a copy on local disk
-    ## Removed. Will place directly into database table
-    # landing_path = Path(main_path) / "raw_bills.pkl"
+    dict_sourcedata = [row._mapping for row in sourcedata]
 
-    ## Insert the datframe into PG
-    table_name = "lfg_bills"
-    table_schema = "landing"
-    print(etl.data_to_landing(df, pg_engine, table_name, table_schema))
+    ## Insert the datframe into PG landing  schma
+    print(etl.qb_data_to_landing(pg_engine, tbl_lfg_bills, dict_sourcedata))
 
-    ## Copy to staging - no changes to the landing data
-    staging_schema = "landing"
-    print(etl.data_to_landing(df, pg_engine, table_name, staging_schema))
+    ## Copy the same data to staging - No transformation
+    print(etl.qb_data_to_staging(pg_engine, tbl_lfg_bills, dict_sourcedata))
 
-    ## Insert to prod
-    ## No modification made so will just copy through
-    ## staging to prod fn will handle dups
-    prod_schema = "prod"
-    print(etl.staging_to_prod(pg_engine, df, prod_schema, table_name))
+    ## copy new data from staging to prod while updating records
+    print(etl.delete_stale_prod(pg_engine, tbl_prod_lfg_bills, tbl_prod_lfg_bills))
+    print(etl.delete_dup_staging(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills))
+    print(etl.staging_to_prod(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills))
+
 
 if __name__ == "__main__":
     main()

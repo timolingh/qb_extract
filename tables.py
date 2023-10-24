@@ -1,5 +1,5 @@
 from sqlalchemy import Table, Column
-from sqlalchemy import String, Integer, DateTime, Date
+from sqlalchemy import String, Integer, DateTime, Date, Numeric, Boolean
 from sqlalchemy import MetaData
 
 metadata_obj = MetaData()
@@ -20,24 +20,73 @@ tbl_vendors = Table(
 tbl_bills = Table(
 	"Bills",
 	metadata_obj,
-	Column("ID"),
-	Column("VendorName"),
-	Column("VendorId"),
-	Column("ReferenceNumber"),
+	Column("ID", String),
+	Column("VendorName", String),
+	Column("VendorId", String),
+	Column("ReferenceNumber", String),
 	Column("Date", Date),
-	Column("Amount"),
+	Column("Amount", Numeric(20,4)),
 	Column("DueDate", Date),
-	Column("Terms"),
-	Column("TermsId"),
-	Column("AccountsPayable"),
-	Column("AccountsPayableId"),
-	Column("Memo"),
-	Column("IsPaid"),
+	Column("Terms", String),
+	Column("TermsId", String),
+	Column("AccountsPayable", String),
+	Column("AccountsPayableId", String),
+	Column("Memo", String),
+	Column("IsPaid", Boolean),
 	Column("TimeModified", DateTime),
 	Column("TimeCreated", DateTime),
-	Column("OpenAmount")
+	Column("OpenAmount", Numeric(20, 4)),
+    schema=None
 				  
 )
+
+## LFG Bills - destination table in PG
+tbl_lfg_bills = Table(
+	"lfg_bills",
+	metadata_obj,
+	Column("ID", String),
+	Column("VendorName", String),
+	Column("VendorId", String),
+	Column("ReferenceNumber", String),
+	Column("Date", Date),
+	Column("Amount", Numeric(20,4)),
+	Column("DueDate", Date),
+	Column("Terms", String),
+	Column("TermsId", String),
+	Column("AccountsPayable", String),
+	Column("AccountsPayableId", String),
+	Column("Memo", String),
+	Column("IsPaid", Boolean),
+	Column("TimeModified", DateTime),
+	Column("TimeCreated", DateTime),
+	Column("OpenAmount", Numeric(20, 4)),
+    schema=None
+				  
+)
+
+tbl_prod_lfg_bills = Table(
+	"lfg_bills",
+	metadata_obj,
+	Column("ID", String),
+	Column("VendorName", String),
+	Column("VendorId", String),
+	Column("ReferenceNumber", String),
+	Column("Date", Date),
+	Column("Amount", Numeric(20,4)),
+	Column("DueDate", Date),
+	Column("Terms", String),
+	Column("TermsId", String),
+	Column("AccountsPayable", String),
+	Column("AccountsPayableId", String),
+	Column("Memo", String),
+	Column("IsPaid", Boolean),
+	Column("TimeModified", DateTime),
+	Column("TimeCreated", DateTime),
+	Column("OpenAmount", Numeric(20, 4)),
+    schema="prod"
+				  
+)
+				  
 
 ## Checks
 tbl_checks = Table(
