@@ -4,3 +4,4 @@ QuickBooksPythonConnector.zip
 .env
 Pipfile
 data
+__pycache__

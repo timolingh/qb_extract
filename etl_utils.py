@@ -24,11 +24,17 @@ def connect_to_db(cxn_parameters, echo=False):
 
     return engine
 
+# def truncate_table(engine, table, schema):
+#     with engine.connect().execution_options(schema_translate_map={None: schema}, isolation_level="AUTOCOMMIT", checkfirst=True) as conn:
+#         table.drop(conn)
+#         table.create(conn)
+
+#     return 0
+
+
 def qb_data_to_landing(engine, table, values):
     with engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT") as conn:
-        ## Truncate the table before insert
-        fq_name = table.fullname
-        conn.execute(text(f"truncate table {fq_name}"))
+        conn.execute(table.delete())
         conn.execute(table.insert(), values)
 
     return 0
@@ -36,38 +42,43 @@ def qb_data_to_landing(engine, table, values):
 def qb_data_to_staging(engine, table, values):
     with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
         ## Truncate the table before insert
-        fq_name = table.fullname
-        conn.execute(text(f"truncate table {fq_name}"))
+        conn.execute(table.delete())
         conn.execute(table.insert(), values)
 
     return 0
 
-def run_statement(engine, stmt):
-    with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
-        conn.execute(stmt)
+# def run_statement(engine, stmt):
+#     with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
+#         conn.execute(stmt)
     
-    return 0
+#     return 0
 
 
 def delete_stale_prod(engine, source_table, prod_table):
-    j = join(prod_table, source_table, 
-                and_(prod_table.c.ID == source_table.c.ID, prod_table.c.DateModified < source_table.c.DateModified)
-                )
-    stale_id_stmt = select(prod_table.c.ID).select_from(j)
-    del_stmt = prod_table.delete().where(prod_table.c.ID.in_(stale_id_stmt))
-    run_statement(engine, del_stmt)
+    with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
+        j = join(prod_table, source_table, 
+                    and_(prod_table.c.ID == source_table.c.ID, prod_table.c.TimeModified < source_table.c.TimeModified)
+                    )
+        stale_id_stmt = select(prod_table.c.ID).select_from(j)
+        del_stmt = prod_table.delete().where(prod_table.c.ID.in_(stale_id_stmt))
+        conn.execute(del_stmt)
+
     return 0
 
 def delete_dup_staging(engine, source_table, prod_table):
-    j = join(source_table.c.ID == prod_table.c.ID)
-    in_prod_stmt = select(prod_table.c.ID).select_from(j)
-    del_stmt = source_table.delete().where(source_table.c.ID.in_(in_prod_stmt))
-    run_statement(engine, del_stmt)
+    with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
+        j = join(prod_table, source_table, source_table.c.ID == prod_table.c.ID)
+        in_prod_stmt = select(prod_table.c.ID).select_from(j)
+        del_stmt = source_table.delete().where(source_table.c.ID.in_(in_prod_stmt))
+        conn.execute(del_stmt)
+    
     return 0
 
 def staging_to_prod(engine, source_table, prod_table):
-    stmt = prod_table.insert().values(source_table.select())
-    run_statement(engine, stmt) 
+    with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
+        stmt = prod_table.insert().from_select(prod_table.columns.keys(), source_table.select())
+        conn.execute(stmt) 
+
     return 0   
 
 ## Debugging section

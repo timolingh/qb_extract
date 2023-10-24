@@ -13,7 +13,7 @@ from tables import *
 def main():
 
     ## Application parameters
-    lookback_days = 30
+    lookback_days = 5
     # datapath = "C:/Users/Tim/iCloudDrive/qb_data"
     # main_path = "./"
 
@@ -42,7 +42,7 @@ def main():
 
     ## Create tables in tables.py
     # metadata_obj.create_all(qb_engine)
-    tbl_bills.create(qb_engine, checkfirst=True)
+    tbl_bills.create(qb_engine, checkfirst=True)    
     tbl_lfg_bills.create(pg_engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
     tbl_lfg_bills.create(pg_engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
     tbl_prod_lfg_bills.create(pg_engine.connect().execution_options(isolation_level="AUTOCOMMIT"), checkfirst=True)
@@ -56,15 +56,15 @@ def main():
     dict_sourcedata = [row._mapping for row in sourcedata]
 
     ## Insert the datframe into PG landing  schma
-    print(etl.qb_data_to_landing(pg_engine, tbl_lfg_bills, dict_sourcedata))
+    _ = etl.qb_data_to_landing(pg_engine, tbl_lfg_bills, dict_sourcedata)
 
     ## Copy the same data to staging - No transformation
-    print(etl.qb_data_to_staging(pg_engine, tbl_lfg_bills, dict_sourcedata))
+    _ = etl.qb_data_to_staging(pg_engine, tbl_lfg_bills, dict_sourcedata)
 
     ## copy new data from staging to prod while updating records
-    print(etl.delete_stale_prod(pg_engine, tbl_prod_lfg_bills, tbl_prod_lfg_bills))
-    print(etl.delete_dup_staging(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills))
-    print(etl.staging_to_prod(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills))
+    _ = etl.delete_stale_prod(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills)
+    _ = etl.delete_dup_staging(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills)
+    _ = etl.staging_to_prod(pg_engine, tbl_lfg_bills, tbl_prod_lfg_bills)
 
 
 if __name__ == "__main__":
