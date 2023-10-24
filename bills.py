@@ -13,7 +13,7 @@ from tables import *
 def main():
 
     ## Application parameters
-    lookback_days = 5
+    lookback_days = 30
     # datapath = "C:/Users/Tim/iCloudDrive/qb_data"
     # main_path = "./"
 
