@@ -1,5 +1,4 @@
 import datetime
-import xmltodict
 from lxml import etree
 
 class BillQuery:
@@ -39,7 +38,7 @@ class BillQuery:
         af_listid.text = "800001BC-1447797951" 
 
         paid_status = etree.SubElement(self.xml_root, "PaidStatus")
-        paid_status.text = "NotPaidOnly"
+        paid_status.text = "All"
 
 class QbResp:
 
@@ -64,7 +63,7 @@ class QbResp:
         self.transformed_data = []
         
 
-    def transform_data(self):
+    def transform_data(self) -> dict:
         response_tag = self.response_spec.get("response_tag")
         records_tag = self.response_spec.get("records_tag")
         rows = self.raw_data.get(response_tag).get(records_tag)
@@ -76,14 +75,11 @@ class QbResp:
             for orig_field in field_map.keys():
                 val = self.enh_get(row, orig_field)
                 new_key = field_map.get(orig_field)
-
-                print(orig_field, new_key, val)
-
                 row_dict[new_key] = val
 
-                print(row_dict)
-
             self.transformed_data.append(row_dict)
+        
+        return self.transformed_data
 
     @staticmethod
     def enh_get(row_data: dict, map_key: str) -> str | int | float | None:
