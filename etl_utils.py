@@ -2,7 +2,7 @@
 # import io
 # from datetime import datetime
 # import hashlib
-import pandas as pd
+# import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy import select, delete, join, and_
 
