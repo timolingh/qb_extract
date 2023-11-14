@@ -1,10 +1,11 @@
-import pandas as pd
 import os 
-import datetime
 from dotenv import load_dotenv
 from sqlalchemy import select
 from sqlalchemy import column
 from pathlib import Path
+import xmltodict
+from quickbooks_desktop.session_manager import SessionManager
+from xml_query import BillQuery, QbResp
 
 ## My modules
 import etl_utils as etl
@@ -19,16 +20,6 @@ def main():
 
     load_dotenv(override=True)
 
-    ## QB connection
-    qb_cxn_parameters = {
-        'db_user': os.getenv('DB_USER'),
-        'db_password': os.getenv('DB_PASSWORD'),
-        'db_host': os.getenv('DB_HOST'),
-        'db_port': os.getenv('DB_PORT')
-    }
-    
-    qb_engine = etl.connect_to_db(qb_cxn_parameters)
-
     ## PostgreSQL
     pg_cxn_parameters = {
         'db_user': os.getenv('PG_DB_USER'),
@@ -41,21 +32,21 @@ def main():
     pg_engine = etl.connect_to_db(pg_cxn_parameters)
 
     ## Create tables in tables.py
-    # metadata_obj.create_all(qb_engine)
-    tbl_bills.create(qb_engine, checkfirst=True)    
     tbl_lfg_bills.create(pg_engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
     tbl_lfg_bills.create(pg_engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
     tbl_prod_lfg_bills.create(pg_engine.connect().execution_options(isolation_level="AUTOCOMMIT"), checkfirst=True)
 
     ## Extract
-    datefilter = datetime.date.today() + datetime.timedelta(days=-lookback_days)
-    stmt = select(tbl_bills).filter(column("DueDate") >= datefilter)
-    with qb_engine.connect() as conn:
-        sourcedata = conn.execute(stmt).fetchall()
+    bill_query = BillQuery(days_lookback=lookback_days)
+    session = SessionManager()
+    my_results = session.send_xml(bill_query.xml_root)
+    results_dict = xmltodict.parse(my_results).get("QBXML").get("QBXMLMsgsRs")
 
-    dict_sourcedata = [row._mapping for row in sourcedata]
+    ## Transform
+    bill_response = QbResp.bill_response(results_dict)
+    dict_sourcedata = bill_response.transform_data()
 
-    ## Insert the datframe into PG landing  schma
+    ## Insert the datframe into PG landing schma
     _ = etl.qb_data_to_landing(pg_engine, tbl_lfg_bills, dict_sourcedata)
 
     ## Copy the same data to staging - No transformation

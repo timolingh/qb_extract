@@ -2,25 +2,18 @@
 # import io
 # from datetime import datetime
 # import hashlib
-import pandas as pd
+# import pandas as pd
 from sqlalchemy import create_engine, text
 from sqlalchemy import select, delete, join, and_
 
 def connect_to_db(cxn_parameters, echo=False):
-    if 'db_name' in cxn_parameters.keys():
-        db_user = cxn_parameters['db_user']
-        db_password = cxn_parameters['db_password']
-        db_user = cxn_parameters['db_user']
-        db_host = cxn_parameters['db_host']
-        db_port = cxn_parameters['db_port']
-        db_name = cxn_parameters['db_name']
-        engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}', echo=echo)
-    else:
-        db_user = cxn_parameters['db_user']
-        db_password = cxn_parameters['db_password']
-        db_host = cxn_parameters['db_host']
-        db_port = cxn_parameters['db_port']
-        engine = create_engine(f"quickbooks_2:///?URL=http://{db_host}:{db_port}&User={db_user}&Password={db_password}", echo=echo)
+    db_user = cxn_parameters['db_user']
+    db_password = cxn_parameters['db_password']
+    db_user = cxn_parameters['db_user']
+    db_host = cxn_parameters['db_host']
+    db_port = cxn_parameters['db_port']
+    db_name = cxn_parameters['db_name']
+    engine = create_engine(f'postgresql://{db_user}:{db_password}@{db_host}:{db_port}/{db_name}', echo=echo)
 
     return engine
 
