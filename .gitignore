@@ -5,3 +5,4 @@ QuickBooksPythonConnector.zip
 Pipfile
 data
 __pycache__
+qb_path.py
