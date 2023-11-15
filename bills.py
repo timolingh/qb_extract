@@ -5,22 +5,21 @@ from sqlalchemy import column
 from pathlib import Path
 import xmltodict
 from quickbooks_desktop.session_manager import SessionManager
-from xml_query import BillQuery, QbResp
 
 ## My modules
+from xml_query import BillQuery, QbResp
 import etl_utils as etl
+from qb_path import *
 from tables import *
 
 def main():
 
     ## Application parameters
     lookback_days = 30
-    # datapath = "C:/Users/Tim/iCloudDrive/qb_data"
-    # main_path = "./"
+    qb_path = Path(linkage_file)
 
+    ## Postgres secrets
     load_dotenv(override=True)
-
-    ## PostgreSQL
     pg_cxn_parameters = {
         'db_user': os.getenv('PG_DB_USER'),
         'db_password': os.getenv('PG_DB_PASSWORD'),
@@ -38,7 +37,7 @@ def main():
 
     ## Extract
     bill_query = BillQuery(days_lookback=lookback_days)
-    session = SessionManager()
+    session = SessionManager(company_file=qb_path)
     my_results = session.send_xml(bill_query.xml_root)
     results_dict = xmltodict.parse(my_results).get("QBXML").get("QBXMLMsgsRs")
 
