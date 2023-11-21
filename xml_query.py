@@ -1,6 +1,21 @@
 import datetime
 from lxml import etree
 
+class TransactionQuery:
+    """
+    """
+
+    def __init__(self, max_results: int=0, days_lookback: int=0):
+        # The xml root
+        self.xml_root = etree.Element("TransactionQueryRq")
+        self.max_results: int = max_results
+        self.days_lookback: int = days_lookback
+
+        if self.max_results:
+            max_returned = etree.SubElement(self.xml_root, "MaxReturned")
+            max_returned.text = f"{self.max_results}"
+
+
 class BillQuery:
     """
 
@@ -118,6 +133,30 @@ class QbResp:
         }
 
         return cls(data, response_spec)
+
+    @classmethod
+    def transaction_response(cls, data):
+        response_spec = {
+            "response_tag": "TransactionQueryRs",
+            "records_tag": "TransactionRet",
+            "field_map": {
+                "TxnID": "ID",
+                "TxnType": "TransactionType",
+                "TxnDate": "TransactionDate",
+                "EntityRef.ListID": "EntityId",
+                "EntityRef.FullName": "Entity",
+                "AccountRef.ListID": "AccountId",
+                "AccountRef.FullName": "Account",
+                "RefNumber": "RefNumber",
+                "Amount": "Amount",
+                "Memo": "Memo",
+                "TimeCreated": "TimeCreated",
+                "TimeModified": "TimeModified"
+            }
+        }
+
+        return cls(data, response_spec)
+
 
 
 
