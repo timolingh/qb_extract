@@ -118,8 +118,8 @@ tbl_class = Table(
 
 
 ## Alameda Court tables
-tbl_ac_revenue = Table(
-    "ac_revenue_tst",
+tbl_ac_transactions = Table(
+    "alameda_court_transactions",
     metadata_obj,
     Column("ID", String),
     Column("TransactionType", String),
@@ -135,8 +135,8 @@ tbl_ac_revenue = Table(
     Column("TimeModified", DateTime)
 )
 
-tbl_prod_ac_revenue = Table(
-    "ac_revenue_tst",
+tbl_prod_ac_transactions = Table(
+    "alameda_court_transactions",
     metadata_obj,
     Column("ID", String),
     Column("TransactionType", String),

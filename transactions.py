@@ -15,7 +15,7 @@ from tables import *
 def main():
 
     ## Application parameters
-    lookback_days = 30
+    lookback_days = 14
     qb_path = Path(alameda_court_file)
 
     ## Postgres secrets
@@ -31,9 +31,9 @@ def main():
     pg_engine = etl.connect_to_db(pg_cxn_parameters)
 
     ## Create tables in tables.py
-    tbl_ac_revenue.create(pg_engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
-    tbl_ac_revenue.create(pg_engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
-    tbl_prod_ac_revenue.create(pg_engine.connect().execution_options(isolation_level="AUTOCOMMIT"), checkfirst=True)
+    tbl_ac_transactions.create(pg_engine.connect().execution_options(schema_translate_map={None: "landing"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
+    tbl_ac_transactions.create(pg_engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT"), checkfirst=True)
+    tbl_prod_ac_transactions.create(pg_engine.connect().execution_options(isolation_level="AUTOCOMMIT"), checkfirst=True)
 
     ## Extract
     transaction_query = TransactionQuery(days_lookback=lookback_days)
@@ -47,15 +47,15 @@ def main():
 
 
     ## Insert the datframe into PG landing schma
-    _ = etl.qb_data_to_landing(pg_engine, tbl_ac_revenue, dict_sourcedata)
+    _ = etl.qb_data_to_landing(pg_engine, tbl_ac_transactions, dict_sourcedata)
 
     ## Copy the same data to staging - No transformation
-    _ = etl.qb_data_to_staging(pg_engine, tbl_ac_revenue, dict_sourcedata)
+    _ = etl.qb_data_to_staging(pg_engine, tbl_ac_transactions, dict_sourcedata)
 
     ## copy new data from staging to prod while updating records
-    _ = etl.delete_stale_prod(pg_engine, tbl_ac_revenue, tbl_prod_ac_revenue)
-    _ = etl.delete_dup_staging(pg_engine, tbl_ac_revenue, tbl_prod_ac_revenue)
-    _ = etl.staging_to_prod(pg_engine, tbl_ac_revenue, tbl_prod_ac_revenue)
+    _ = etl.delete_stale_prod(pg_engine, tbl_ac_transactions, tbl_prod_ac_transactions)
+    _ = etl.delete_dup_staging(pg_engine, tbl_ac_transactions, tbl_prod_ac_transactions)
+    _ = etl.staging_to_prod(pg_engine, tbl_ac_transactions, tbl_prod_ac_transactions)
 
 
 if __name__ == "__main__":
