@@ -117,5 +117,41 @@ tbl_class = Table(
 )
 
 
+## Alameda Court tables
+tbl_ac_transactions = Table(
+    "alameda_court_transactions",
+    metadata_obj,
+    Column("ID", String),
+    Column("TransactionType", String),
+    Column("TransactionDate", Date),
+    Column("EntityId", String),
+    Column("Entity", String),
+	Column("AccountId", String),
+    Column("Account", String),
+    Column("RefNumber", String),
+    Column("Amount", Numeric(20, 4)),
+    Column("Memo", String),
+    Column("TimeCreated", DateTime),
+    Column("TimeModified", DateTime)
+)
+
+tbl_prod_ac_transactions = Table(
+    "alameda_court_transactions",
+    metadata_obj,
+    Column("ID", String),
+    Column("TransactionType", String),
+    Column("TransactionDate", Date),
+    Column("EntityId", String),
+    Column("Entity", String),
+	Column("AccountId", String),
+    Column("Account", String),
+    Column("RefNumber", String),
+    Column("Amount", Numeric(20, 4)),
+    Column("Memo", String),
+    Column("TimeCreated", DateTime),
+    Column("TimeModified", DateTime),
+    schema="prod"
+)
+
 ## Create this in the main script.
 # metadata_obj.create_all(engine)

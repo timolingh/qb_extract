@@ -1,6 +1,45 @@
 import datetime
 from lxml import etree
 
+class TransactionQuery:
+    """
+    Builds the main XML to submit to QB request processor
+
+    Attributes:
+    - max_results (int): The maximum number of results to retrieve. Defaults to 0.
+    - days_lookback (int): The number of days to look back for bill queries. Defaults to 0.
+    - xml_root (Element): The xml root element for the bill query. 
+      This is the main output from this class.
+    - QuickBooks SDK online doc: https://static.developer.intuit.com/qbSDK-current/common/newosr/index.html
+   
+    """
+
+    def __init__(self, max_results: int=0, days_lookback: int=0):
+        # The xml root
+        self.xml_root = etree.Element("TransactionQueryRq")
+        self.max_results: int = max_results
+        self.days_lookback: int = days_lookback
+
+        if self.max_results:
+            max_returned = etree.SubElement(self.xml_root, "MaxReturned")
+            max_returned.text = f"{self.max_results}"
+
+        if self.days_lookback:
+            start_date = (datetime.date.today() + datetime.timedelta(days=-self.days_lookback)).strftime("%Y-%m-%d")
+            end_date = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            date_range_filter = etree.SubElement(self.xml_root, "TransactionModifiedDateRangeFilter")
+            from_modified_date = etree.SubElement(date_range_filter, "FromModifiedDate")
+            to_modified_date = etree.SubElement(date_range_filter, "ToModifiedDate")
+            from_modified_date.text = start_date
+            to_modified_date.text = end_date
+
+        transaction_type_filter = etree.SubElement(self.xml_root, "TransactionTypeFilter")
+        transaction_types = ["BillPaymentCheck", "Check", "ReceivePayment"]
+        for transaction_type in transaction_types:
+            txn_type_filter = etree.SubElement(transaction_type_filter, "TxnTypeFilter")
+            txn_type_filter.text = transaction_type
+
+
 class BillQuery:
     """
 
@@ -118,6 +157,30 @@ class QbResp:
         }
 
         return cls(data, response_spec)
+
+    @classmethod
+    def transaction_response(cls, data):
+        response_spec = {
+            "response_tag": "TransactionQueryRs",
+            "records_tag": "TransactionRet",
+            "field_map": {
+                "TxnID": "ID",
+                "TxnType": "TransactionType",
+                "TxnDate": "TransactionDate",
+                "EntityRef.ListID": "EntityId",
+                "EntityRef.FullName": "Entity",
+                "AccountRef.ListID": "AccountId",
+                "AccountRef.FullName": "Account",
+                "RefNumber": "RefNumber",
+                "Amount": "Amount",
+                "Memo": "Memo",
+                "TimeCreated": "TimeCreated",
+                "TimeModified": "TimeModified"
+            }
+        }
+
+        return cls(data, response_spec)
+
 
 
 
