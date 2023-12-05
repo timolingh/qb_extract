@@ -1,3 +1,3 @@
 @echo off
 call conda activate qb_extract
-python ./transactions.py
+python C:\Users\Tim\Documents\projects\qb_extract\transactions.py
