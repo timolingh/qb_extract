@@ -1,3 +1,3 @@
 @echo off
 call conda activate qb_extract
-python ./bills.py
+python C:\Users\Tim\Documents\projects\qb_extract\bills.py
