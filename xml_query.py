@@ -105,18 +105,19 @@ class QbResp:
     def transform_data(self) -> dict:
         response_tag = self.response_spec.get("response_tag")
         records_tag = self.response_spec.get("records_tag")
-        rows = self.raw_data.get(response_tag).get(records_tag)
-        
-        for row in rows:
-            field_map = self.response_spec.get("field_map")
-            row_dict = {}
 
-            for orig_field in field_map.keys():
-                val = self.enh_get(row, orig_field)
-                new_key = field_map.get(orig_field)
-                row_dict[new_key] = val
+        if self.raw_data.get('TransactionQueryRs').get('@statusMessage') == 'Status OK':
+            rows = self.raw_data.get(response_tag).get(records_tag)
+            for row in rows:
+                field_map = self.response_spec.get("field_map")
+                row_dict = {}
 
-            self.transformed_data.append(row_dict)
+                for orig_field in field_map.keys():
+                    val = self.enh_get(row, orig_field)
+                    new_key = field_map.get(orig_field)
+                    row_dict[new_key] = val
+
+                self.transformed_data.append(row_dict)
         
         return self.transformed_data
 
