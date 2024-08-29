@@ -55,6 +55,7 @@ def delete_stale_prod(engine, source_table, prod_table):
         stale_id_stmt = select(prod_table.c.ID).select_from(j)
         del_stmt = prod_table.delete().where(prod_table.c.ID.in_(stale_id_stmt))
         conn.execute(del_stmt)
+        conn.commit()
 
     return 0
 
@@ -64,6 +65,7 @@ def delete_dup_staging(engine, source_table, prod_table):
         in_prod_stmt = select(prod_table.c.ID).select_from(j)
         del_stmt = source_table.delete().where(source_table.c.ID.in_(in_prod_stmt))
         conn.execute(del_stmt)
+        conn.commit()
     
     return 0
 
@@ -71,6 +73,7 @@ def staging_to_prod(engine, source_table, prod_table):
     with engine.connect().execution_options(schema_translate_map={None: "staging"}, isolation_level="AUTOCOMMIT") as conn:
         stmt = prod_table.insert().from_select(prod_table.columns.keys(), source_table.select())
         conn.execute(stmt) 
+        conn.commit()
 
     return 0   
 
