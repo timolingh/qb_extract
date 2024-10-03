@@ -106,7 +106,7 @@ class QbResp:
         response_tag = self.response_spec.get("response_tag")
         records_tag = self.response_spec.get("records_tag")
 
-        if self.raw_data.get('TransactionQueryRs').get('@statusMessage') == 'Status OK':
+        if self.raw_data.get(response_tag).get('@statusMessage').lower() == 'status ok':
             rows = self.raw_data.get(response_tag).get(records_tag)
             for row in rows:
                 field_map = self.response_spec.get("field_map")
