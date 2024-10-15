@@ -11,6 +11,7 @@ class TransactionQuery:
     - xml_root (Element): The xml root element for the bill query. 
       This is the main output from this class.
     - QuickBooks SDK online doc: https://static.developer.intuit.com/qbSDK-current/common/newosr/index.html
+    - Note.  Tags must be entered in order.
    
     """
 
@@ -51,6 +52,7 @@ class BillQuery:
     - xml_root (Element): The xml root element for the bill query. 
       This is the main output from this class.
     - QuickBooks SDK online doc: https://static.developer.intuit.com/qbSDK-current/common/newosr/index.html
+    - Note.  Tags must be entered in order.
     """
 
     def __init__(self, max_results: int=0, days_lookback: int=0):
@@ -72,12 +74,17 @@ class BillQuery:
             from_modified_date.text = start_date
             to_modified_date.text = end_date
 
-        account_filter = etree.SubElement(self.xml_root, "AccountFilter")
-        af_listid = etree.SubElement(account_filter, "ListID")
-        af_listid.text = "800001BC-1447797951" 
-
+        ## This filters for only CS bills.  Instead, pull all bills into the DB 
+        # account_filter = etree.SubElement(self.xml_root, "AccountFilter")
+        # af_listid = etree.SubElement(account_filter, "ListID")
+        # af_listid.text = "800001BC-1447797951" 
+ 
         paid_status = etree.SubElement(self.xml_root, "PaidStatus")
         paid_status.text = "All"
+
+        # Linked transactions
+        include_linked_txns = etree.SubElement(self.xml_root, "IncludeLinkedTxns")
+        include_linked_txns.text = "true"
 
 class QbResp:
 
@@ -151,6 +158,8 @@ class QbResp:
                 "TermsRef.ListID": "TermsId",
                 "TermsRef.FullName": "Terms",
                 "Memo": "Memo",
+                "LinkedTxn.TxnID": "LinkedTxnId",
+                "LinkedTxn.TxnType": "LinkedTxnType",
                 "IsPaid": "IsPaid",
                 "TimeCreated": "TimeCreated",
                 "TimeModified": "TimeModified"
