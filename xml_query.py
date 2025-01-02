@@ -86,6 +86,33 @@ class BillQuery:
         include_linked_txns = etree.SubElement(self.xml_root, "IncludeLinkedTxns")
         include_linked_txns.text = "true"
 
+class InvoiceQuery:
+    def __init__(self, max_results: int=0, days_lookback: int=0):
+        # The xml root
+        self.xml_root = etree.Element("InvoiceQueryRq")
+        self.max_results: int = max_results
+        self.days_lookback: int = days_lookback
+        
+        if self.max_results:
+            max_returned = etree.SubElement(self.xml_root, "MaxReturned")
+            max_returned.text = f"{self.max_results}"
+
+        if self.days_lookback:
+            start_date = (datetime.date.today() + datetime.timedelta(days=-self.days_lookback)).strftime("%Y-%m-%d")
+            end_date = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            date_range_filter = etree.SubElement(self.xml_root, "ModifiedDateRangeFilter")
+            from_modified_date = etree.SubElement(date_range_filter, "FromModifiedDate")
+            to_modified_date = etree.SubElement(date_range_filter, "ToModifiedDate")
+            from_modified_date.text = start_date
+            to_modified_date.text = end_date
+ 
+        paid_status = etree.SubElement(self.xml_root, "PaidStatus")
+        paid_status.text = "All"
+
+        # Linked transactions
+        include_linked_txns = etree.SubElement(self.xml_root, "IncludeLinkedTxns")
+        include_linked_txns.text = "true"
+
 class QbResp:
 
     """
@@ -190,6 +217,38 @@ class QbResp:
         }
 
         return cls(data, response_spec)
+
+    @classmethod
+    def invoice_response(cls, data):
+        response_spec = {
+            "response_tag": "InvoiceQueryRs",
+            "records_tag": "InvoiceRet",
+            "field_map": {
+                "TxnID": "ID",
+                "CustomerRef.ListID": "CustomerId",
+                "CustomerRef.FullName": "CustomerName",
+                "ARAccountRef.ListID": "AccountsReceivableId",
+                "ARAccountRef.FullName": "AccountsReceivable",
+                "RefNumber": "ReferenceNumber",
+                "TxnDate": "Date",
+                "DueDate": "DueDate",
+                "Subtotal": "Subtotal",
+                "AppliedAmount": "AppliedAmount",
+                "BalanceRemaining": "BalanceRemaining",
+                # "AmountDue": "OpenAmount",
+                "TermsRef.ListID": "TermsId",
+                "TermsRef.FullName": "Terms",
+                "Memo": "Memo",
+                "LinkedTxn.TxnID": "LinkedTxnId",
+                "LinkedTxn.TxnType": "LinkedTxnType",
+                "IsPaid": "IsPaid",
+                "TimeCreated": "TimeCreated",
+                "TimeModified": "TimeModified"
+            }
+        }
+
+        return cls(data, response_spec)
+
 
 
 
