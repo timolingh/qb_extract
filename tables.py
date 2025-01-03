@@ -193,5 +193,51 @@ tbl_prod_lfg_transactions = Table(
     schema="prod"
 )
 
+## LFG Invoices
+tbl_lfg_invoices = Table(
+    "lfg_invoices",
+    metadata_obj,
+    Column("ID", String),
+	Column("CustomerId", String),
+	Column("CustomerName", String),
+	Column("AccountsReceivableId", String),
+	Column("AccountsReceivable", String),
+	Column("ReferenceNumber", String),
+    Column("TransactionDate", Date),
+	Column("DueDate", String),
+	Column("Subtotal", Numeric(20, 4)),
+	Column("AppliedAmount", Numeric(20, 4)),
+	Column("BalanceRemaining", Numeric(20, 4)),
+	Column("Memo", String),
+	Column("LinkedTxnId", String),
+	Column("LinkedTxnType", String),
+	Column("IsPaid", String),
+    Column("TimeCreated", DateTime),
+    Column("TimeModified", DateTime)    
+)
+
+tbl_prod_lfg_invoices = Table(
+    "lfg_invoices",
+    metadata_obj,
+    Column("ID", String),
+	Column("CustomerId", String),
+	Column("CustomerName", String),
+	Column("AccountsReceivableId", String),
+	Column("AccountsReceivable", String),
+	Column("ReferenceNumber", String),
+    Column("TransactionDate", Date),
+	Column("DueDate", String),
+	Column("Subtotal", Numeric(20, 4)),
+	Column("AppliedAmount", Numeric(20, 4)),
+	Column("BalanceRemaining", Numeric(20, 4)),
+	Column("Memo", String),
+	Column("LinkedTxnId", String),
+	Column("LinkedTxnType", String),
+	Column("IsPaid", String),
+    Column("TimeCreated", DateTime),
+    Column("TimeModified", DateTime),
+	schema="prod"    
+)
+
 ## Create this in the main script.
 # metadata_obj.create_all(engine)
