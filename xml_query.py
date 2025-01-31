@@ -86,6 +86,34 @@ class BillQuery:
         include_linked_txns = etree.SubElement(self.xml_root, "IncludeLinkedTxns")
         include_linked_txns.text = "true"
 
+class CheckQuery:
+    def __init__(self, max_results: int=0, days_lookback: int=0):
+        # The xml root
+        self.xml_root = etree.Element("CheckQueryRq")
+        self.max_results: int = max_results
+        self.days_lookback: int = days_lookback
+
+        if self.max_results:
+            max_returned = etree.SubElement(self.xml_root, "MaxReturned")
+            max_returned.text = f"{self.max_results}"
+
+        if self.days_lookback:
+            start_date = (datetime.date.today() + datetime.timedelta(days=-self.days_lookback)).strftime("%Y-%m-%d")
+            end_date = (datetime.date.today() + datetime.timedelta(days=1)).strftime("%Y-%m-%d")
+            date_range_filter = etree.SubElement(self.xml_root, "ModifiedDateRangeFilter")
+            from_modified_date = etree.SubElement(date_range_filter, "FromModifiedDate")
+            to_modified_date = etree.SubElement(date_range_filter, "ToModifiedDate")
+            from_modified_date.text = start_date
+            to_modified_date.text = end_date
+
+        # Include line items
+        include_line_items = etree.SubElement(self.xml_root, "IncludeLineItems")
+        include_line_items.text = "true"
+
+        # Linked transactions
+        include_linked_txns = etree.SubElement(self.xml_root, "IncludeLinkedTxns")
+        include_linked_txns.text = "true"
+
 class InvoiceQuery:
     def __init__(self, max_results: int=0, days_lookback: int=0):
         # The xml root
@@ -247,6 +275,29 @@ class QbResp:
             }
         }
 
+        return cls(data, response_spec)
+
+    @classmethod
+    def check_response(cls, data):
+        response_spec = {
+            "response_tag": "CheckQueryRs",
+            "records_tag": "CheckRet",
+            "field_map": {
+                "TxnID": "ID",
+                "AccountRef.ListID": "FundingAccountId",
+                "AccountRef.FullName": "FundingAccount",
+                "PayeeEntityRef.ListID": "PayeeId",
+                "PayeeEntityRef.FullName": "Payee",
+                "TxnDate": "TransactionDate",
+                "Amount": "Amount",
+                "ExpenseLineRet.TxnLineID": "ExpenseLineId",
+                "ExpenseLineRet.AccountRef.ListID": "ExpenseAccountId",
+                "ExpenseLineRet.AccountRef.FullName": "ExpenseAccount",
+                "Memo": "Memo",
+                "TimeCreated": "TimeCreated",
+                "TimeModified": "TimeModified"
+            }
+        }
         return cls(data, response_spec)
 
 
