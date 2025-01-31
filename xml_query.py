@@ -277,6 +277,29 @@ class QbResp:
 
         return cls(data, response_spec)
 
+    @classmethod
+    def check_response(cls, data):
+        response_spec = {
+            "response_tag": "CheckQueryRs",
+            "records_tag": "CheckRet",
+            "field_map": {
+                "TxnID": "ID",
+                "AccountRef.ListID": "FundingAccountId",
+                "AccountRef.FullName": "FundingAccount",
+                "PayeeEntityRef.ListID": "PayeeId",
+                "PayeeEntityRef.FullName": "Payee",
+                "TxnDate": "TransactionDate",
+                "Amount": "Amount",
+                "ExpenseLineRet.TxnLineID": "ExpenseLineId",
+                "ExpenseLineRet.AccountRef.ListID": "ExpenseAccountId",
+                "ExpenseLineRet.AccountRef.FullName": "ExpenseAccount",
+                "Memo": "Memo",
+                "TimeCreated": "TimeCreated",
+                "TimeModified": "TimeModified"
+            }
+        }
+        return cls(data, response_spec)
+
 
 
 

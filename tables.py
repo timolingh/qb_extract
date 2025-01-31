@@ -66,23 +66,43 @@ tbl_prod_lfg_bills = Table(
 				  
 )
 				  
-
 ## Checks
-tbl_checks = Table(
-	"Checks",
+tbl_lfg_checks = Table(
+	"lfg_checks",
 	metadata_obj,
-	Column("ID"),
-	Column("ReferenceNumber"),
-	Column("Account"),
-	Column("AccountId"),
-	Column("Payee"),
-	Column("PayeeId"),
-	Column("Date"),
-	Column("Amount"),
-	Column("Memo"),
-	Column("IsToBePrinted"),
+	Column("ID", String),
+	Column("FundingAccount", String),
+	Column("FundingAccountId", String),
+	Column("Payee", String),
+	Column("PayeeId", String),
+	Column("TransactionDate", Date),
+	Column("Amount", Numeric(20, 4)),
+    Column("ExpenseLineId", String),
+    Column("ExpenseAccountId", String),
+    Column("ExpenseAccount", String),
+	Column("Memo", String),
 	Column("TimeModified", DateTime),
-	Column("TimeCreated", DateTime)			   
+	Column("TimeCreated", DateTime),
+    schema=None	   
+)
+
+tbl_prod_lfg_checks = Table(
+	"lfg_checks",
+	metadata_obj,
+	Column("ID", String),
+	Column("FundingAccount", String),
+	Column("FundingAccountId", String),
+	Column("Payee", String),
+	Column("PayeeId", String),
+	Column("TransactionDate", Date),
+	Column("Amount", Numeric(20, 4)),
+    Column("ExpenseLineId", String),
+    Column("ExpenseAccountId", String),
+    Column("ExpenseAccount", String),
+	Column("Memo", String),
+	Column("TimeModified", DateTime),
+	Column("TimeCreated", DateTime),
+    schema="prod"	   
 )
 
 ##BillPaymentChecks
