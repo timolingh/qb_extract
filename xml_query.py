@@ -161,14 +161,37 @@ class QbResp:
     def __init__(self, raw_data: dict, response_spec: dict = {}) -> None:
         self.raw_data = raw_data
         self.response_spec = response_spec
+        self.exploded_data = []
         self.transformed_data = []
-        
 
-    def transform_data(self) -> dict:
+    def explode_data(self, key_to_explode) -> list[dict]:
         response_tag = self.response_spec.get("response_tag")
         records_tag = self.response_spec.get("records_tag")
 
         if self.raw_data.get(response_tag).get('@statusMessage').lower() == 'status ok':
+            rows = self.raw_data.get(response_tag).get(records_tag)
+            for row in rows:
+                row_data = {}
+                if not(isinstance(row.get(key_to_explode), list)):
+                    for key, val in row.items():
+                        row_data[key] = val
+                    self.exploded_data.append(row_data)
+                else:
+                    for split_item in row.get(key_to_explode):
+                        for key, val in row.items():
+                            row_data[key] = val
+                        row_data[key_to_explode] = split_item
+                        self.exploded_data.append(row_data)
+
+        return self.exploded_data    
+
+    def transform_data(self) -> list[dict]:
+        response_tag = self.response_spec.get("response_tag")
+        records_tag = self.response_spec.get("records_tag")
+
+        if self.raw_data.get(response_tag).get('@statusMessage').lower() == 'status ok':
+            if len(self.exploded_data) > 0:
+                self.raw_data[records_tag] = self.exploded_data
             rows = self.raw_data.get(response_tag).get(records_tag)
             for row in rows:
                 field_map = self.response_spec.get("field_map")
@@ -180,9 +203,9 @@ class QbResp:
                     row_dict[new_key] = val
 
                 self.transformed_data.append(row_dict)
-        
+    
         return self.transformed_data
-
+    
     @staticmethod
     def enh_get(row_data: dict, map_key: str) -> str | int | float | None:
         keys = map_key.split(".")
@@ -290,9 +313,29 @@ class QbResp:
                 "PayeeEntityRef.FullName": "Payee",
                 "TxnDate": "TransactionDate",
                 "Amount": "Amount",
-                "ExpenseLineRet.TxnLineID": "ExpenseLineId",
+                # "ExpenseLineRet.TxnLineID": "ExpenseLineId",
+                # "ExpenseLineRet.AccountRef.ListID": "ExpenseAccountId",
+                # "ExpenseLineRet.AccountRef.FullName": "ExpenseAccount",
+                "TimeCreated": "TimeCreated",
+                "TimeModified": "TimeModified"
+            }
+        }
+        return cls(data, response_spec)
+    
+    @classmethod
+    def expense_response(cls, data):
+        response_spec = {
+            "response_tag": "CheckQueryRs",
+            "records_tag": "CheckRet",
+            "field_map": {
+                "ExpenseLineRet.TxnLineID": "ID",
+                "TxnID": "LinkedTxnID",
+                "PayeeEntityRef.ListID": "PayeeId",
+                "PayeeEntityRef.FullName": "Payee",
+                "TxnDate": "TransactionDate",
                 "ExpenseLineRet.AccountRef.ListID": "ExpenseAccountId",
                 "ExpenseLineRet.AccountRef.FullName": "ExpenseAccount",
+                "Amount": "Amount",
                 "Memo": "Memo",
                 "TimeCreated": "TimeCreated",
                 "TimeModified": "TimeModified"

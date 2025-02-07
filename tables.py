@@ -77,10 +77,10 @@ tbl_lfg_checks = Table(
 	Column("PayeeId", String),
 	Column("TransactionDate", Date),
 	Column("Amount", Numeric(20, 4)),
-    Column("ExpenseLineId", String),
-    Column("ExpenseAccountId", String),
-    Column("ExpenseAccount", String),
-	Column("Memo", String),
+    # Column("ExpenseLineId", String),
+    # Column("ExpenseAccountId", String),
+    # Column("ExpenseAccount", String),
+	# Column("Memo", String),
 	Column("TimeModified", DateTime),
 	Column("TimeCreated", DateTime),
     schema=None	   
@@ -96,9 +96,46 @@ tbl_prod_lfg_checks = Table(
 	Column("PayeeId", String),
 	Column("TransactionDate", Date),
 	Column("Amount", Numeric(20, 4)),
-    Column("ExpenseLineId", String),
+    # Column("ExpenseLineId", String),
+    # Column("ExpenseAccountId", String),
+    # Column("ExpenseAccount", String),
+	# Column("Memo", String),
+	Column("TimeModified", DateTime),
+	Column("TimeCreated", DateTime),
+    schema="prod"	   
+)
+
+## Expenses
+tbl_lfg_expenses = Table(
+	"lfg_expenses",
+	metadata_obj,
+	Column("ID", String),
+    Column("LinkedTxnID", String),
+	Column("Payee", String),
+	Column("PayeeId", String),
+	Column("TransactionDate", Date),
+    # Column("ExpenseLineId", String),
     Column("ExpenseAccountId", String),
     Column("ExpenseAccount", String),
+    Column("Amount", Numeric(20,4)),
+	Column("Memo", String),
+	Column("TimeModified", DateTime),
+	Column("TimeCreated", DateTime),
+    schema=None	   
+)
+
+tbl_prod_lfg_expenses = Table(
+	"lfg_expenses",
+	metadata_obj,
+	Column("ID", String),
+    Column("LinkedTxnID", String),
+	Column("Payee", String),
+	Column("PayeeId", String),
+	Column("TransactionDate", Date),
+    # Column("ExpenseLineId", String),
+    Column("ExpenseAccountId", String),
+    Column("ExpenseAccount", String),
+    Column("Amount", Numeric(20,4)),
 	Column("Memo", String),
 	Column("TimeModified", DateTime),
 	Column("TimeCreated", DateTime),
